@@ -82,16 +82,19 @@ export function DeteccionVista({ estado, imagenDataUrl }: DeteccionVistaProps) {
                                 pointerEvents: 'none',
                             }}
                         >
-                            {/* Etiqueta dentro de la caja (top-left) para que nunca se recorte */}
+                            {/* Marcador numerado (no texto): evita que las etiquetas
+                                se encimen cuando hay cajas juntas. El nombre y la
+                                confianza van en la leyenda de abajo, con el mismo número. */}
                             <span style={{
                                 position: 'absolute', top: 0, left: 0,
+                                minWidth: 16, height: 16, padding: '0 4px',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 background: 'var(--accent)', color: '#fff',
-                                fontFamily: 'var(--mono)', fontSize: 10, fontWeight: 600,
-                                lineHeight: 1.3, padding: '1px 5px',
-                                borderRadius: '2px 0 4px 0',
-                                whiteSpace: 'nowrap',
+                                fontFamily: 'var(--mono)', fontSize: 10, fontWeight: 700, lineHeight: 1,
+                                borderRadius: '3px 0 4px 0',
+                                boxShadow: '0 0 0 1px rgba(0,0,0,0.4)',
                             }}>
-                                {caja.claseEs} {caja.confianza.toFixed(2)}
+                                {i + 1}
                             </span>
                         </div>
                     )
@@ -138,6 +141,44 @@ export function DeteccionVista({ estado, imagenDataUrl }: DeteccionVistaProps) {
                     </div>
                 )}
             </div>
+
+            {/* Leyenda: lista de hallazgos numerados (clase_es + confianza).
+                El texto vive aquí, no sobre las cajas, para que nunca se solape. */}
+            {estado.estado === 'listo' && hayCajas && (
+                <div style={{ marginTop: 10 }}>
+                    <div style={{ ...captionStyle, marginBottom: 8 }}>
+                        Hallazgos localizados ({cajas.length})
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                        {cajas.map((caja, i) => (
+                            <div
+                                key={`leyenda-${caja.clase}-${i}`}
+                                style={{
+                                    display: 'inline-flex', alignItems: 'center', gap: 8,
+                                    padding: '5px 11px 5px 5px', borderRadius: 8,
+                                    background: 'var(--bg-3)', border: '1px solid var(--border)',
+                                }}
+                            >
+                                <span style={{
+                                    minWidth: 18, height: 18, padding: '0 4px',
+                                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                                    background: 'var(--accent)', color: '#fff',
+                                    fontFamily: 'var(--mono)', fontSize: 10, fontWeight: 700, lineHeight: 1,
+                                    borderRadius: 5,
+                                }}>
+                                    {i + 1}
+                                </span>
+                                <span style={{ fontSize: 13, color: 'var(--t0)' }}>
+                                    {caja.claseEs}
+                                </span>
+                                <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--t1)' }}>
+                                    {caja.confianza.toFixed(2)}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             {/* Pie discreto: error / resumen + prob_filtro */}
             {estado.estado === 'error' ? (
