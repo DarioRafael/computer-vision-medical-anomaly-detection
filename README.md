@@ -1,82 +1,50 @@
-# Sistema de IA para Deteccion de Carcinoma Pulmonar
+# Desarrollo de una aplicación para la detección de anomalías médicas usando visión artificial
 
-> Herramienta de apoyo diagnostico basada en vision computacional para la identificacion de indicadores de cancer de pulmon en imagenes medicas de torax.
+> Aplicación de apoyo clínico basada en visión artificial para el análisis de radiografías de tórax: clasifica patologías, localiza hallazgos mediante un detector de objetos y explica las decisiones del modelo con mapas de activación.
 
 ---
 
-## Descripcion
+## Descripción
 
-Este proyecto desarrolla un sistema de inteligencia artificial capaz de analizar radiografias y tomografias computarizadas de torax, identificar regiones de interes asociadas al carcinoma pulmonar y generar un reporte estructurado con los hallazgos detectados. El sistema esta disenado como segunda opinion clinica, no como reemplazo del criterio medico.
+Este proyecto es una aplicación que analiza radiografías de tórax y entrega tres tipos de apoyo al profesional de salud: una estimación de probabilidad de hallazgos, la localización de anomalías mediante cuadros delimitadores sobre la imagen, y un mapa visual de las zonas en las que el modelo basó su decisión. El sistema está concebido como una herramienta de segunda opinión, no como sustituto del criterio médico.
 
-El diagnostico tardio del cancer de pulmon es una de las principales causas de su alta mortalidad. Este sistema apunta a reducir tiempos de evaluacion inicial y ampliar el alcance del tamizaje en entornos con acceso limitado a especialistas.
+La aplicación expone su funcionalidad a través de una API y una interfaz web, de modo que una misma radiografía puede analizarse y visualizarse con sus resultados de forma interactiva.
+
+---
+
+## Funcionalidades
+
+La aplicación integra tres capacidades de visión artificial sobre radiografías de tórax:
+
+**Clasificación.** Modelos basados en EfficientNet estiman la probabilidad de presencia de hallazgos y de múltiples patologías torácicas a nivel de imagen, devolviendo porcentajes de confianza por condición.
+
+**Detección.** Un sistema de dos etapas localiza anomalías dentro de la radiografía. La primera etapa es un filtro binario que decide si la imagen presenta hallazgos o está limpia; solo cuando hay sospecha, la segunda etapa (un detector de objetos) dibuja cuadros delimitadores sobre las regiones afectadas, cada uno con su clase y nivel de confianza. Este enfoque reduce de forma drástica los falsos positivos en radiografías sin hallazgos.
+
+**Explicabilidad.** Mapas de activación tipo Grad-CAM muestran, sobre la propia radiografía, las zonas que más influyeron en la decisión del clasificador, aportando transparencia a la predicción.
 
 ---
 
 ## Salidas del sistema
 
-Ante una imagen de torax como entrada, el sistema produce:
+Ante una radiografía de tórax como entrada, la aplicación produce:
 
-- Region de interes senyalada dentro de la imagen analizada
-- Descripcion de hallazgos en cuanto a densidad, forma y distribucion del tejido
-- Porcentaje de probabilidad de presencia de carcinoma pulmonar
+- Probabilidad estimada de hallazgos y de patologías individuales
+- Localización de anomalías mediante cuadros delimitadores, con clase y confianza por hallazgo
+- Mapa de activación (Grad-CAM) de las zonas de atención del modelo
+- Resumen estructurado del análisis
 
 ---
 
-## Stack tecnologico
+## Stack tecnológico
 
-| Capa | Tecnologia |
+| Capa | Tecnología |
 |---|---|
-| Frontend | Next.js 16, React 19, Tailwind CSS 4, TypeScript |
-| Backend IA | Python, FastAPI |
-| Modelo | PyTorch — ResNet / EfficientNet con fine-tuning |
-| Visualizacion | Grad-CAM para mapas de activacion |
-| Formatos de imagen | PNG, DICOM, SVS |
-
----
-
-## Datasets
-
-El modelo se entrena en dos etapas utilizando tres conjuntos de datos publicos de reconocida validez cientifica.
-
-### NIH Chest X-ray Dataset
-Base de preentrenamiento para reconocimiento general de patrones toracicos.
-
-- 112,120 radiografias frontales de torax
-- 30,805 pacientes unicos
-- 14 patologias etiquetadas por imagen
-- Division: 86,500 entrenamiento / 25,600 prueba
-- Formato PNG 1024x1024 en escala de grises
-- Precision de etiquetas superior al 90%
-
-Fuente: [NIH Clinical Center via HuggingFace](https://huggingface.co/datasets/alkzar90/NIH-Chest-X-ray-dataset)
-
----
-
-### CMB-LCA — Cancer Moonshot Biobank Lung Cancer Collection
-Fine-tuning con casos confirmados de cancer de pulmon captados de forma longitudinal.
-
-- 206 pacientes con diagnostico confirmado de cancer de pulmon
-- 1,600 series de imagenes radiologicas
-- Mas de 216,000 imagenes individuales en formato DICOM
-- 299 laminas histopatologicas en formato SVS
-- Modalidades: CT, MRI, PET, ultrasonido y radiografia convencional
-- Licencia CC BY 4.0
-
-Fuente: [The Cancer Imaging Archive](https://www.cancerimagingarchive.net/collection/cmb-lca/)
-
----
-
-### Lung Cancer Dataset — Roboflow
-Especializacion en clasificacion de tipos de carcinoma pulmonar.
-
-- 4,598 imagenes de tomografia computarizada de torax
-- 10 clases incluyendo tejido normal, adenocarcinoma, carcinoma de celulas grandes y carcinoma de celulas escamosas
-- Imagenes estandarizadas a 640x640 pixeles
-- Division: 3,240 entrenamiento / 678 validacion / 680 prueba
-- Modelo base con 86.8% de precision en validacion
-- Licencia CC BY 4.0
-
-Fuente: [Roboflow Universe](https://universe.roboflow.com/lung-cancer-3gsnq/lung-cancer-dataset)
+| Frontend | Next.js, React, Tailwind CSS, TypeScript |
+| Backend | Python, FastAPI |
+| Clasificación | PyTorch, timm (EfficientNet) |
+| Detección | Sistema de dos etapas: filtro binario (EfficientNet) + detector de objetos (YOLO / Ultralytics) |
+| Explicabilidad | Grad-CAM |
+| Formato de imagen | PNG |
 
 ---
 
@@ -86,38 +54,67 @@ Fuente: [Roboflow Universe](https://universe.roboflow.com/lung-cancer-3gsnq/lung
 Usuario
    |
    v
-Next.js (Frontend)
-   |  carga imagen / muestra resultados
+Frontend (Next.js + React)
+   |  carga la radiografía / muestra resultados (clasificación, detección, Grad-CAM)
    v
-API Routes (Next.js)
-   |  reenv ia solicitud
+API (FastAPI, Python)
+   |  preprocesa la imagen y orquesta los modelos
    v
-FastAPI (Python Backend)
-   |  preprocesa imagen
++------------------------+   +-------------------------------+   +-----------------+
+|   Clasificadores       |   |   Detección (2 etapas)        |   |   Grad-CAM      |
+|   EfficientNet         |   |   filtro binario -> detector  |   |   explicabilidad|
+|   probabilidad/clases  |   |   cuadros + clase + confianza |   |   zonas atención|
++------------------------+   +-------------------------------+   +-----------------+
+   |
    v
-Modelo PyTorch (ResNet / EfficientNet)
-   |  inferencia + Grad-CAM
-   v
-Respuesta: region marcada + descripcion + porcentaje
+Respuesta: probabilidad + cuadros delimitadores + mapa de activación + resumen
 ```
 
 ---
 
-## Metodologia de entrenamiento
+## Sistema de detección en dos etapas
 
-El entrenamiento se divide en dos etapas:
+La detección sigue un enfoque de dos etapas para equilibrar sensibilidad y precisión:
 
-**Etapa 1 — Preentrenamiento general**
-El modelo aprende a reconocer patrones toracicos generales y distinguir hallazgos normales de anomalos usando el NIH Chest X-ray Dataset.
+1. **Etapa A — Filtro binario.** Un clasificador EfficientNet decide si la radiografía es normal o presenta hallazgos. Si la considera normal, el análisis de detección termina ahí y no se generan cuadros.
+2. **Etapa B — Detector de objetos.** Solo cuando el filtro indica sospecha, un detector localiza las anomalías y dibuja un cuadro delimitador por hallazgo, con su clase y confianza.
 
-**Etapa 2 — Fine-tuning especializado**
-El modelo se especializa en carcinoma pulmonar usando CMB-LCA y el Lung Cancer Dataset de Roboflow, ambos con diagnostico clinico confirmado.
-
-El desbalance natural entre clases (mayoria de imagenes sin hallazgos) se aborda mediante tecnicas de ponderacion durante el entrenamiento, priorizando la minimizacion de falsos negativos.
+Este diseño evita que el detector genere cuadros espurios en radiografías limpias, que son la mayoría en un escenario real de tamizaje.
 
 ---
 
-## Instalacion
+## Patologías consideradas en la detección
+
+El detector contempla 14 categorías de hallazgos torácicos: ensanchamiento aórtico, atelectasia, calcificación, cardiomegalia, consolidación, enfermedad pulmonar intersticial (ILD), infiltración, opacidad pulmonar, nódulo/masa, otras lesiones, derrame pleural, engrosamiento pleural, neumotórax y fibrosis pulmonar.
+
+---
+
+## Datos
+
+Los modelos se entrenan con conjuntos de datos públicos de radiografía de tórax de reconocida validez científica.
+
+### NIH Chest X-ray Dataset
+Base para el reconocimiento general de patrones torácicos y la clasificación de patologías.
+
+- 112,120 radiografías frontales de tórax
+- 30,805 pacientes únicos
+- 14 patologías etiquetadas a nivel de imagen
+- Formato PNG en escala de grises
+
+Fuente: [NIH Clinical Center](https://huggingface.co/datasets/alkzar90/NIH-Chest-X-ray-dataset)
+
+### VinDr-CXR
+Base para el entrenamiento del detector de anomalías, por contar con anotaciones de localización (cuadros delimitadores) realizadas por radiólogos.
+
+- 15,000 radiografías de tórax anotadas
+- Cuadros delimitadores por múltiples radiólogos para 14 categorías de hallazgos
+- Anotaciones de localización fusionadas por consenso para el entrenamiento
+
+Fuente: [VinDr-CXR / PhysioNet](https://physionet.org/content/vindr-cxr/)
+
+---
+
+## Instalación
 
 ```bash
 # Clonar el repositorio
@@ -127,52 +124,44 @@ cd Sistema-de-IA-para-Detecci-n-de-Carcinoma-Pulmonar
 # Instalar dependencias del frontend
 npm install
 
-# Correr en desarrollo
+# Correr el frontend en desarrollo
 npm run dev
 ```
 
-El frontend estara disponible en `http://localhost:3000`
+El frontend estará disponible en `http://localhost:3000`.
+
+Para el backend (API de inferencia), instalar las dependencias de Python y levantar el servidor:
+
+```bash
+pip install -r requirements.txt
+uvicorn main:app --reload
+```
+
+La API estará disponible en `http://localhost:8000` y su documentación interactiva en `http://localhost:8000/docs`.
 
 ---
 
 ## Scripts disponibles
 
 ```bash
-npm run dev      # Servidor de desarrollo
-npm run build    # Compilar para produccion
-npm run start    # Iniciar servidor de produccion
-npm run lint     # Revision de codigo
+npm run dev      # Servidor de desarrollo del frontend
+npm run build    # Compilar para producción
+npm run start    # Iniciar servidor de producción
+npm run lint     # Revisión de código
 ```
 
 ---
 
-## Equipo
+## Autor
 
-| Nombre | Rol |
-|---|---|
-| Dario Rafael Garcia Barcenas | Desarrollo |
-| Mario Alberto Ibarra Perez | Desarrollo |
-| Gael Alejandro Morales Soria | Desarrollo |
-| Juan Carlos Torres Reyna | Desarrollo |
-| Jade Cruz Rodriguez | Desarrollo |
-
-**Asesores:**
-Jose Regino Infante Ventura — Esmeralda Covarrubias Flores
+Darío Rafael García Bárcenas
 
 ---
 
 ## Estado del proyecto
 
-Este repositorio constituye la fase activa de desarrollo. Los contenidos, la arquitectura, los datasets y los enfoques tecnicos estan sujetos a cambios conforme avance el entrenamiento y la validacion del modelo.
+Repositorio en desarrollo activo. La arquitectura, los datos y los enfoques técnicos pueden cambiar conforme avancen el entrenamiento y la validación de los modelos.
 
 ---
 
-## Referencias
-
-- Instituto Nacional del Cancer (NCI). (2022). *Inteligencia artificial para ver el cancer de formas nuevas y mas eficaces.* [cancer.gov](https://www.cancer.gov/espanol/noticias/temas-y-relatos-blog/2022/inteligencia-artificial-imagenes-cancer)
-
-- Secretaria de Salud, INER. (2024). *INER utiliza inteligencia artificial para impulsar deteccion temprana de cancer de pulmon.* [gob.mx](https://www.gob.mx/salud/prensa/006-iner-utiliza-inteligencia-artificial-para-impulsar-deteccion-temprana-de-cancer-de-pulmon)
-
----
-
-> Este sistema es una herramienta de apoyo clinico. No constituye un diagnostico medico. El criterio del profesional de salud es siempre determinante.# computer-vision-medical-anomaly-detection
+> Esta aplicación es una herramienta de apoyo clínico. No constituye un diagnóstico médico. El criterio del profesional de salud es siempre determinante.
