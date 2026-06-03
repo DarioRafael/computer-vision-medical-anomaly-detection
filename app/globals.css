@@ -1,0 +1,284 @@
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+:root {
+  /* ── Fondos — gris oscuro neutro ── */
+  --bg-0: #111111;
+  --bg-1: #0e0e0e;
+  --bg-2: #161616;
+  --bg-3: #1c1c1c;
+  --bg-glass: rgba(14, 14, 14, 0.88);
+
+  /* ── Bordes neutros ── */
+  --border: #1f1f1f;
+  --border-h: #2a2a2a;
+  /* Borde de selección/foco: teal */
+  --border-focus: rgba(20, 184, 166, 0.45);
+  --border-sel: #14b8a6;
+
+  /* ── Acento — teal suave ── */
+  --accent: #14b8a6;
+  --accent-h: #2dd4bf;
+  --accent-d: #0f9285;
+  --accent-glow: rgba(20, 184, 166, 0.07);
+
+  /* ── Texto — blancos y grises neutros ── */
+  --t0: #e8e8e8;
+  --t1: #aaaaaa;
+  --t2: #555555;
+  --t3: #333333;
+
+  /* ── Estados clínicos ── */
+  --ok: #2eb87a;
+  --ok-bg: rgba(46, 184, 122, 0.1);
+  --warn: #e8a020;
+  --warn-bg: rgba(232, 160, 32, 0.1);
+  --err: #d84040;
+  --err-bg: rgba(216, 64, 64, 0.1);
+
+  /* ── Tipografía ── */
+  --sans: 'Geist', system-ui, sans-serif;
+  --mono: 'Geist Mono', monospace;
+  --display: 'Geist', system-ui, sans-serif;
+
+  /* ── Radios ── */
+  --r3: 3px;
+  --r4: 4px;
+  --r6: 6px;
+  --r8: 8px;
+  --r12: 12px;
+  --r16: 16px;
+
+  /* ── Transiciones ── */
+  --ta: 0.12s ease;
+  --ts: 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ── Sombras — neutras, sin color ── */
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.4);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.6), 0 2px 6px rgba(0,0,0,0.4);
+  --shadow-accent: 0 0 0 3px rgba(20, 184, 166, 0.15);
+}
+
+[data-theme='light'] {
+  --bg-0: #f2f2f2;
+  --bg-1: #f8f8f8;
+  --bg-2: #ffffff;
+  --bg-3: #ffffff;
+  --bg-glass: rgba(255, 255, 255, 0.9);
+  --border: #e0e0e0;
+  --border-h: #cccccc;
+  --border-focus: rgba(15, 146, 133, 0.4);
+  --t0: #111111;
+  --t1: #444444;
+  --t2: #888888;
+  --t3: #cccccc;
+  --accent: #0f9285;
+  --accent-h: #14b8a6;
+  --accent-d: #0b766b;
+  --accent-glow: rgba(15, 146, 133, 0.08);
+  --ok: #1a9e60;
+  --warn: #b87010;
+  --err: #b02828;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.1), 0 2px 6px rgba(0,0,0,0.06);
+}
+
+/* ── Reset ─────────────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg-0);
+  color: var(--t0);
+  font-family: var(--sans);
+  font-size: 13.5px;
+  font-weight: 400;
+  line-height: 1.6;
+  letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Scrollbar refinado ─────────────────────────────────────────────── */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-h) transparent;
+}
+*::-webkit-scrollbar { width: 3px; height: 3px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb {
+  background: var(--border-h);
+  border-radius: 2px;
+}
+*::-webkit-scrollbar-thumb:hover { background: var(--t2); }
+
+/* ── Search highlight ───────────────────────────────────────────────── */
+mark {
+  background: var(--accent-glow);
+  border-radius: 2px;
+  padding: 1px 2px;
+  color: var(--accent-h);
+  font-weight: 500;
+}
+
+/* ── Imagen en burbuja ──────────────────────────────────────────────── */
+.bubble-img {
+  max-width: 200px;
+  max-height: 160px;
+  border-radius: var(--r6);
+  display: block;
+  margin-bottom: 8px;
+  cursor: zoom-in;
+  border: 1px solid var(--border-h);
+  transition: transform var(--ta), border-color var(--ta);
+  object-fit: cover;
+}
+.bubble-img:hover {
+  transform: scale(1.015);
+  border-color: var(--accent);
+}
+
+/* ── Botón copiar: visible solo en hover sobre la burbuja ───────────── */
+.msg-wrap:hover .copy-btn { opacity: 1 !important; }
+.msg-wrap:hover .msg-ts   { opacity: 1 !important; }
+
+/* ── Markdown en burbujas ───────────────────────────────────────────── */
+.bubble strong, .bubble b {
+  font-weight: 600;
+  color: var(--t0);
+}
+.bubble em, .bubble i {
+  font-style: italic;
+  color: var(--t1);
+}
+.bubble code {
+  font-family: var(--mono);
+  font-size: 11px;
+  background: var(--accent-glow);
+  border: 1px solid var(--border-focus);
+  border-radius: var(--r3);
+  padding: 1px 6px;
+  letter-spacing: 0;
+}
+.bubble pre {
+  font-family: var(--mono);
+  font-size: 11px;
+  background: var(--bg-0);
+  border: 1px solid var(--border);
+  border-radius: var(--r6);
+  padding: 12px 16px;
+  overflow-x: auto;
+  margin-top: 10px;
+  line-height: 1.7;
+  letter-spacing: 0;
+}
+.bubble ul, .bubble ol {
+  padding-left: 18px;
+  margin-top: 6px;
+}
+.bubble li { margin-bottom: 3px; color: var(--t0); }
+.bubble p + p { margin-top: 8px; }
+.bubble h3, .bubble h4 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--t0);
+  margin-top: 12px;
+  margin-bottom: 4px;
+  letter-spacing: -0.02em;
+}
+
+/* ── Search match outline ───────────────────────────────────────────── */
+.bubble.search-match {
+  outline: 1px solid rgba(20, 184, 166, 0.3);
+  outline-offset: 3px;
+  border-radius: var(--r8);
+}
+
+/*
+ * ── Cursor de streaming ELIMINADO ────────────────────────────────────
+ *
+ * El cursor `▋` parpadeante con ::after causaba que el punto
+ * se quedara visible si endStream() no se llamaba correctamente.
+ *
+ * REEMPLAZADO POR: tres puntos animados inline en MessageBubble.tsx,
+ * renderizados SOLO mientras isStreaming === true como nodos React.
+ * Cuando isStreaming pasa a false, los puntos desaparecen de forma
+ * garantizada porque React los desmonta del DOM.
+ *
+ * NO restaurar .bubble.streaming::after aquí.
+ */
+
+/* ── Divider clínico para separar secciones de fecha ───────────────── */
+.msg-date-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 0;
+  color: var(--t2);
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.msg-date-divider::before,
+.msg-date-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ── Animaciones ────────────────────────────────────────────────────── */
+
+/* Entrada de mensajes */
+@keyframes msg-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Tres puntos de streaming (usados en MessageBubble.tsx) */
+@keyframes dot-stream {
+  0%, 80%, 100% {
+    opacity: 0.2;
+    transform: scale(0.8);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+@keyframes mic-pulse {
+  0%   { transform: scale(1);   opacity: 0.5; }
+  100% { transform: scale(1.6); opacity: 0;   }
+}
+
+@keyframes drop-in {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: scale(1);    }
+}
+
+@keyframes status-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(0.85); }
+}
+
+/* Spinner genérico — usado en botones de carga, etc. */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
