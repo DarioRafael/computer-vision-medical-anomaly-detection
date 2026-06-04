@@ -101,3 +101,46 @@ export interface ResultadoSegmentacion {
     readonly resumen: string
     readonly tiempoMs: number
 }
+
+// ── ANÁLISIS INTEGRADO (orquesta los 4 modelos + cruce espacial) ──
+
+export interface VeredictoIntegrado {
+    readonly esAnormal: boolean
+    readonly probabilidad: number
+    readonly nivel: 'bajo' | 'moderado' | 'alto' | string
+}
+
+export interface PatologiaProbable {
+    readonly clase: string
+    readonly claseEs: string
+    readonly prob: number
+}
+
+/** Caja del detector enriquecida con el cruce espacial. */
+export interface HallazgoLocalizado {
+    readonly clase: string
+    readonly claseEs: string
+    readonly confianza: number
+    readonly xyxy: readonly [number, number, number, number]
+    /** "campo pulmonar derecho/izquierdo" | "región mediastínica" | "no disponible..." */
+    readonly ubicacion: string
+    /** "ubicación esperada" | "ubicación atípica" | "no evaluable" */
+    readonly coherencia: string
+}
+
+/**
+ * Reporte unificado del análisis integrado: teje las 4 perspectivas.
+ * `mascaraPng` es el overlay base64 (igual que segmentación) para dibujar la
+ * máscara tenue bajo las cajas.
+ */
+export interface ResultadoIntegrado {
+    readonly veredicto: VeredictoIntegrado
+    readonly patologiasProbables: readonly PatologiaProbable[]
+    readonly hallazgosLocalizados: readonly HallazgoLocalizado[]
+    readonly areaPulmonPct: number
+    readonly resumenTexto: string
+    readonly mascaraPng: string
+    /** Avisos de fallos parciales (qué modelo no se pudo calcular). */
+    readonly avisos: readonly string[]
+    readonly tiempoMs: number
+}

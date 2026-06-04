@@ -52,3 +52,41 @@ export interface FastAPISegmentResponse {
     readonly resumen: string
     readonly tiempo_procesamiento_ms: number
 }
+
+// ── ANÁLISIS INTEGRADO (/analisis-integrado/analizar) ──
+
+export interface FastAPIVeredicto {
+    readonly es_anormal: boolean
+    readonly probabilidad: number
+    readonly nivel: string  // "bajo" | "moderado" | "alto"
+}
+
+export interface FastAPIPatologiaProbable {
+    readonly clase: string
+    readonly clase_es: string
+    readonly prob: number
+}
+
+export interface FastAPIHallazgoLocalizado {
+    readonly clase: string
+    readonly clase_es: string
+    readonly conf: number
+    readonly xyxy: readonly [number, number, number, number]
+    readonly ubicacion: string
+    readonly coherencia: string  // "ubicación esperada" | "ubicación atípica" | "no evaluable"
+}
+
+/**
+ * Respuesta cruda de FastAPI /analisis-integrado/analizar: reporte unificado
+ * que teje clasificación + multilabel + detección + segmentación.
+ */
+export interface FastAPIIntegradoResponse {
+    readonly veredicto: FastAPIVeredicto
+    readonly patologias_probables: readonly FastAPIPatologiaProbable[]
+    readonly hallazgos_localizados: readonly FastAPIHallazgoLocalizado[]
+    readonly contexto_anatomico: { readonly area_pulmon_pct: number }
+    readonly resumen_texto: string
+    readonly mascara_png: string
+    readonly avisos: readonly string[]
+    readonly tiempo_procesamiento_ms: number
+}

@@ -12,6 +12,8 @@ import { useDeteccion } from '../hooks/use-deteccion'
 import { DeteccionVista } from './deteccion-vista'
 import { useSegmentacion } from '../hooks/use-segmentacion'
 import { SegmentacionVista } from './segmentacion-vista'
+import { useAnalisisIntegrado } from '../hooks/use-analisis-integrado'
+import { IntegradoVista } from './integrado-vista'
 
 interface InformeResultadoProps {
     readonly informe: InformeAnalisis
@@ -288,7 +290,7 @@ export function InformeResultado({ informe, imagenDataUrl, gradcamBase64, onGuar
 // pestaña. La detección es una vista APARTE: con pestañas nunca coinciden en
 // pantalla el heatmap del clasificador y las cajas del detector.
 function AreaImagenes({ imagenDataUrl, gradcamBase64 }: { imagenDataUrl: string; gradcamBase64?: string }) {
-    type TabId = 'original' | 'gradcam' | 'deteccion' | 'segmentacion'
+    type TabId = 'original' | 'gradcam' | 'deteccion' | 'segmentacion' | 'integrado'
     const [tab, setTab] = useState<TabId>('original')
 
     // Detección y segmentación se disparan automáticamente al montar el informe
@@ -296,12 +298,23 @@ function AreaImagenes({ imagenDataUrl, gradcamBase64 }: { imagenDataUrl: string;
     const deteccion = useDeteccion(imagenDataUrl)
     const segmentacion = useSegmentacion(imagenDataUrl)
 
+    // El análisis integrado corre los 4 modelos -> es LAZY: solo se lanza cuando
+    // el usuario abre su pestaña (latch que queda en true).
+    const [integradoSolicitado, setIntegradoSolicitado] = useState(false)
+    const integrado = useAnalisisIntegrado(imagenDataUrl, integradoSolicitado)
+
     const tabs: { id: TabId; label: string }[] = [
         { id: 'original', label: 'Original' },
         ...(gradcamBase64 ? [{ id: 'gradcam' as TabId, label: 'Grad-CAM' }] : []),
         { id: 'deteccion', label: 'Detección' },
         { id: 'segmentacion', label: 'Segmentación' },
+        { id: 'integrado', label: 'Integrado' },
     ]
+
+    function seleccionarTab(id: TabId) {
+        if (id === 'integrado') setIntegradoSolicitado(true)  // dispara el análisis integrado
+        setTab(id)
+    }
 
     return (
         <div>
@@ -314,7 +327,7 @@ function AreaImagenes({ imagenDataUrl, gradcamBase64 }: { imagenDataUrl: string;
                     return (
                         <button
                             key={t.id}
-                            onClick={() => setTab(t.id)}
+                            onClick={() => seleccionarTab(t.id)}
                             style={{
                                 display: 'inline-flex', alignItems: 'center', gap: 6,
                                 padding: '8px 14px', border: 'none', background: 'transparent',
@@ -329,6 +342,7 @@ function AreaImagenes({ imagenDataUrl, gradcamBase64 }: { imagenDataUrl: string;
                             {t.label}
                             {t.id === 'deteccion' && <IndicadorDeteccion estado={deteccion} />}
                             {t.id === 'segmentacion' && <IndicadorSegmentacion estado={segmentacion} />}
+                            {t.id === 'integrado' && <IndicadorIntegrado estado={integrado} />}
                         </button>
                     )
                 })}
@@ -385,6 +399,11 @@ function AreaImagenes({ imagenDataUrl, gradcamBase64 }: { imagenDataUrl: string;
             {tab === 'segmentacion' && (
                 <SegmentacionVista estado={segmentacion} imagenDataUrl={imagenDataUrl} />
             )}
+
+            {/* Panel: Análisis Integrado */}
+            {tab === 'integrado' && (
+                <IntegradoVista estado={integrado} imagenDataUrl={imagenDataUrl} />
+            )}
         </div>
     )
 }
@@ -428,6 +447,29 @@ function IndicadorSegmentacion({ estado }: { estado: ReturnType<typeof useSegmen
         )
     }
     if (estado.estado === 'listo' && estado.datos.areaPulmonPct > 0) {
+        return (
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden>
+                <circle cx="8" cy="8" r="6.5" stroke="var(--accent)" strokeWidth="1.4" />
+                <path d="M5.2 8.2l1.9 1.9 3.7-3.9" stroke="var(--accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+        )
+    }
+    return null
+}
+
+// Indicador de la pestaña "Integrado": spinner mientras corre (4 modelos),
+// y nº de hallazgos cuando termina.
+function IndicadorIntegrado({ estado }: { estado: ReturnType<typeof useAnalisisIntegrado> }) {
+    if (estado.estado === 'cargando') {
+        return (
+            <span style={{
+                width: 10, height: 10, borderRadius: '50%', display: 'inline-block',
+                border: '1.5px solid var(--border)', borderTopColor: 'var(--accent)',
+                animation: 'pulmia-det-spin 0.8s linear infinite',
+            }} />
+        )
+    }
+    if (estado.estado === 'listo') {
         return (
             <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden>
                 <circle cx="8" cy="8" r="6.5" stroke="var(--accent)" strokeWidth="1.4" />

@@ -1,7 +1,7 @@
 // Cliente del endpoint /api/analyze.
 // Envía una imagen al backend y recibe el informe de análisis.
 
-import type { InformeAnalisis, ResultadoDeteccion, ResultadoSegmentacion } from '@/lib/tipos'
+import type { InformeAnalisis, ResultadoDeteccion, ResultadoSegmentacion, ResultadoIntegrado } from '@/lib/tipos'
 
 export interface RespuestaAnalisis {
     readonly informe: InformeAnalisis
@@ -76,4 +76,28 @@ export async function segmentarImagen(
     }
 
     return (await res.json()) as ResultadoSegmentacion
+}
+
+/**
+ * Envía una imagen al endpoint de ANÁLISIS INTEGRADO y devuelve el reporte
+ * unificado (los 4 modelos tejidos). Es la llamada más pesada del cliente.
+ */
+export async function analizarIntegrado(
+    archivo: Blob,
+    nombreArchivo = 'radiografia.png',
+): Promise<ResultadoIntegrado> {
+    const formData = new FormData()
+    formData.append('file', archivo, nombreArchivo)
+
+    const res = await fetch('/api/integrado', {
+        method: 'POST',
+        body: formData,
+    })
+
+    if (!res.ok) {
+        const texto = await res.text().catch(() => 'Error desconocido')
+        throw new Error(`Error ${res.status}: ${texto}`)
+    }
+
+    return (await res.json()) as ResultadoIntegrado
 }
