@@ -81,3 +81,23 @@ export interface ResultadoDeteccion {
     readonly resumen: string
     readonly tiempoMs: number
 }
+
+// ── Sistema de SEGMENTACIÓN (U-Net de campos pulmonares) ──
+// Otro modelo independiente: delinea los pulmones (anatomía), no lesiones.
+
+/**
+ * Resultado normalizado de la segmentación de campos pulmonares.
+ * `mascaraPng` es un PNG RGBA en base64 (sin prefijo data:) ya escalado al
+ * tamaño de la imagen original, para superponerlo directamente.
+ */
+export interface ResultadoSegmentacion {
+    /** PNG RGBA en base64 (sin prefijo `data:`). Vacío si no hubo máscara. */
+    readonly mascaraPng: string
+    /** Ancho/alto de la imagen original (px). */
+    readonly ancho: number
+    readonly alto: number
+    /** Porcentaje del área de la imagen ocupada por pulmón. */
+    readonly areaPulmonPct: number
+    readonly resumen: string
+    readonly tiempoMs: number
+}

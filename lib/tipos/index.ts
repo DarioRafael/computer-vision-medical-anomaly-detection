@@ -3,6 +3,7 @@
 
 export type { ResultadoAnalisis, InformeAnalisis, Severidad, PatologiaRelevante } from './resultado'
 export type { ResultadoDeteccion, CajaDeteccion } from './resultado'
+export type { ResultadoSegmentacion } from './resultado'
 export type { Estudio, EstudioNuevo } from './estudio'
 export type { Paciente } from './paciente'
 export type { Usuario } from './usuario'

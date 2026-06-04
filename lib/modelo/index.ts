@@ -2,4 +2,5 @@
 
 export { predecirRadiografia, ModeloError } from './client'
 export { detectarPatologias } from './deteccion'
-export type { FastAPIPredictResponse, FastAPIDetectResponse, FastAPIDeteccionCaja } from './tipos'
+export { segmentarPulmones } from './segmentacion'
+export type { FastAPIPredictResponse, FastAPIDetectResponse, FastAPIDeteccionCaja, FastAPISegmentResponse } from './tipos'

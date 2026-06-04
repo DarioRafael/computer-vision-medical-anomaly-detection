@@ -10,6 +10,8 @@ import type { InformeAnalisis } from '@/lib/tipos'
 import { MedicalDisclaimer } from '@/components/medical/medical-disclaimer'
 import { useDeteccion } from '../hooks/use-deteccion'
 import { DeteccionVista } from './deteccion-vista'
+import { useSegmentacion } from '../hooks/use-segmentacion'
+import { SegmentacionVista } from './segmentacion-vista'
 
 interface InformeResultadoProps {
     readonly informe: InformeAnalisis
@@ -286,17 +288,19 @@ export function InformeResultado({ informe, imagenDataUrl, gradcamBase64, onGuar
 // pestaña. La detección es una vista APARTE: con pestañas nunca coinciden en
 // pantalla el heatmap del clasificador y las cajas del detector.
 function AreaImagenes({ imagenDataUrl, gradcamBase64 }: { imagenDataUrl: string; gradcamBase64?: string }) {
-    type TabId = 'original' | 'gradcam' | 'deteccion'
+    type TabId = 'original' | 'gradcam' | 'deteccion' | 'segmentacion'
     const [tab, setTab] = useState<TabId>('original')
 
-    // La detección se dispara automáticamente al montar el informe (en paralelo,
-    // sin bloquear): al abrir la pestaña normalmente ya está lista.
+    // Detección y segmentación se disparan automáticamente al montar el informe
+    // (en paralelo, sin bloquear): al abrir la pestaña normalmente ya están listas.
     const deteccion = useDeteccion(imagenDataUrl)
+    const segmentacion = useSegmentacion(imagenDataUrl)
 
     const tabs: { id: TabId; label: string }[] = [
         { id: 'original', label: 'Original' },
         ...(gradcamBase64 ? [{ id: 'gradcam' as TabId, label: 'Grad-CAM' }] : []),
         { id: 'deteccion', label: 'Detección' },
+        { id: 'segmentacion', label: 'Segmentación' },
     ]
 
     return (
@@ -324,6 +328,7 @@ function AreaImagenes({ imagenDataUrl, gradcamBase64 }: { imagenDataUrl: string;
                         >
                             {t.label}
                             {t.id === 'deteccion' && <IndicadorDeteccion estado={deteccion} />}
+                            {t.id === 'segmentacion' && <IndicadorSegmentacion estado={segmentacion} />}
                         </button>
                     )
                 })}
@@ -375,6 +380,11 @@ function AreaImagenes({ imagenDataUrl, gradcamBase64 }: { imagenDataUrl: string;
             {tab === 'deteccion' && (
                 <DeteccionVista estado={deteccion} imagenDataUrl={imagenDataUrl} />
             )}
+
+            {/* Panel: Segmentación */}
+            {tab === 'segmentacion' && (
+                <SegmentacionVista estado={segmentacion} imagenDataUrl={imagenDataUrl} />
+            )}
         </div>
     )
 }
@@ -400,6 +410,29 @@ function IndicadorDeteccion({ estado }: { estado: ReturnType<typeof useDeteccion
             }}>
                 {estado.datos.cajas.length}
             </span>
+        )
+    }
+    return null
+}
+
+// Indicador de la pestaña "Segmentación": spinner mientras carga, y un check
+// pequeño cuando la máscara está lista.
+function IndicadorSegmentacion({ estado }: { estado: ReturnType<typeof useSegmentacion> }) {
+    if (estado.estado === 'cargando') {
+        return (
+            <span style={{
+                width: 10, height: 10, borderRadius: '50%', display: 'inline-block',
+                border: '1.5px solid var(--border)', borderTopColor: 'var(--accent)',
+                animation: 'pulmia-det-spin 0.8s linear infinite',
+            }} />
+        )
+    }
+    if (estado.estado === 'listo' && estado.datos.areaPulmonPct > 0) {
+        return (
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden>
+                <circle cx="8" cy="8" r="6.5" stroke="var(--accent)" strokeWidth="1.4" />
+                <path d="M5.2 8.2l1.9 1.9 3.7-3.9" stroke="var(--accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
         )
     }
     return null

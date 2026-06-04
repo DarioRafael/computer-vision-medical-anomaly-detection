@@ -38,3 +38,17 @@ export interface FastAPIDetectResponse {
     readonly resumen: string
     readonly tiempo_procesamiento_ms: number
 }
+
+/**
+ * Respuesta cruda de FastAPI /segmentacion/segmentar (U-Net de campos pulmonares).
+ * `mascara_png` es un PNG RGBA en base64 (sin prefijo data:) escalado al tamaño
+ * original, listo para superponer sobre la radiografía.
+ */
+export interface FastAPISegmentResponse {
+    readonly mascara_png: string
+    readonly ancho: number
+    readonly alto: number
+    readonly area_pulmon_pct: number
+    readonly resumen: string
+    readonly tiempo_procesamiento_ms: number
+}
