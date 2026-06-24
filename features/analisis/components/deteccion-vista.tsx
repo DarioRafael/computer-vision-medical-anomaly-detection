@@ -12,6 +12,7 @@
 
 import { useState } from 'react'
 import type { EstadoDeteccion } from '../hooks/use-deteccion'
+import { colorEspecialista } from '../especialistas'
 
 interface DeteccionVistaProps {
     readonly estado: EstadoDeteccion
@@ -68,6 +69,8 @@ export function DeteccionVista({ estado, imagenDataUrl }: DeteccionVistaProps) {
                     const topPct = (y1 / dims.h) * 100
                     const widthPct = ((x2 - x1) / dims.w) * 100
                     const heightPct = ((y2 - y1) / dims.h) * 100
+                    // Color por origen: especialista (propio) o detector general (teal actual).
+                    const colorEsp = colorEspecialista(caja.clase)
                     return (
                         <div
                             key={`${caja.clase}-${i}`}
@@ -75,10 +78,12 @@ export function DeteccionVista({ estado, imagenDataUrl }: DeteccionVistaProps) {
                                 position: 'absolute',
                                 left: `${leftPct}%`, top: `${topPct}%`,
                                 width: `${widthPct}%`, height: `${heightPct}%`,
-                                border: '2px solid var(--accent)',
+                                border: `2px solid ${colorEsp ?? 'var(--accent)'}`,
                                 borderRadius: 3,
-                                background: 'rgba(20,184,166,0.10)',
-                                boxShadow: '0 0 0 1px rgba(0,0,0,0.35), 0 0 10px rgba(20,184,166,0.35)',
+                                background: colorEsp ? 'transparent' : 'rgba(20,184,166,0.10)',
+                                boxShadow: colorEsp
+                                    ? '0 0 0 1px rgba(0,0,0,0.4)'
+                                    : '0 0 0 1px rgba(0,0,0,0.35), 0 0 10px rgba(20,184,166,0.35)',
                                 pointerEvents: 'none',
                             }}
                         >
@@ -89,7 +94,7 @@ export function DeteccionVista({ estado, imagenDataUrl }: DeteccionVistaProps) {
                                 position: 'absolute', top: 0, left: 0,
                                 minWidth: 16, height: 16, padding: '0 4px',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                background: 'var(--accent)', color: '#fff',
+                                background: colorEsp ?? 'var(--accent)', color: '#fff',
                                 fontFamily: 'var(--mono)', fontSize: 10, fontWeight: 700, lineHeight: 1,
                                 borderRadius: '3px 0 4px 0',
                                 boxShadow: '0 0 0 1px rgba(0,0,0,0.4)',
@@ -150,7 +155,9 @@ export function DeteccionVista({ estado, imagenDataUrl }: DeteccionVistaProps) {
                         Hallazgos localizados ({cajas.length})
                     </div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                        {cajas.map((caja, i) => (
+                        {cajas.map((caja, i) => {
+                            const colorEsp = colorEspecialista(caja.clase)
+                            return (
                             <div
                                 key={`leyenda-${caja.clase}-${i}`}
                                 style={{
@@ -162,7 +169,7 @@ export function DeteccionVista({ estado, imagenDataUrl }: DeteccionVistaProps) {
                                 <span style={{
                                     minWidth: 18, height: 18, padding: '0 4px',
                                     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                                    background: 'var(--accent)', color: '#fff',
+                                    background: colorEsp ?? 'var(--accent)', color: '#fff',
                                     fontFamily: 'var(--mono)', fontSize: 10, fontWeight: 700, lineHeight: 1,
                                     borderRadius: 5,
                                 }}>
@@ -174,8 +181,19 @@ export function DeteccionVista({ estado, imagenDataUrl }: DeteccionVistaProps) {
                                 <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--t1)' }}>
                                     {caja.confianza.toFixed(2)}
                                 </span>
+                                {colorEsp && (
+                                    <span style={{
+                                        fontFamily: 'var(--mono)', fontSize: 9, lineHeight: 1,
+                                        letterSpacing: '0.04em', textTransform: 'uppercase',
+                                        color: colorEsp, border: `1px solid ${colorEsp}`,
+                                        borderRadius: 6, padding: '2px 5px',
+                                    }}>
+                                        especialista
+                                    </span>
+                                )}
                             </div>
-                        ))}
+                            )
+                        })}
                     </div>
                 </div>
             )}

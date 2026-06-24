@@ -13,6 +13,7 @@
 import { useState } from 'react'
 import type { EstadoIntegrado } from '../hooks/use-analisis-integrado'
 import type { HallazgoLocalizado } from '@/lib/tipos'
+import { esEspecialista, colorEspecialista } from '../especialistas'
 
 interface IntegradoVistaProps {
     readonly estado: EstadoIntegrado
@@ -50,6 +51,13 @@ export function IntegradoVista({ estado, imagenDataUrl }: IntegradoVistaProps) {
     const cargando = estado.estado === 'cargando' || estado.estado === 'inactivo'
     const datos = estado.estado === 'listo' ? estado.datos : null
     const hallazgos = datos?.hallazgosLocalizados ?? []
+
+    // Especialistas presentes entre los hallazgos (para los swatches de la leyenda).
+    const especialistasPresentes = Array.from(
+        new Map(
+            hallazgos.filter((h) => esEspecialista(h.clase)).map((h) => [h.clase, h.claseEs]),
+        ).entries(),
+    ).map(([clase, claseEs]) => ({ clase, claseEs }))
 
     return (
         <div>
@@ -93,7 +101,8 @@ export function IntegradoVista({ estado, imagenDataUrl }: IntegradoVistaProps) {
                 {/* Cajas del detector (encima de la máscara) */}
                 {datos && dims && hallazgos.map((h, i) => {
                     const [x1, y1, x2, y2] = h.xyxy
-                    const color = esAtipica(h.coherencia) ? COLOR_CAJA_ATIPICA : COLOR_CAJA
+                    // Especialista -> color propio; general -> teal/ámbar según coherencia (igual que antes).
+                    const color = colorEspecialista(h.clase) ?? (esAtipica(h.coherencia) ? COLOR_CAJA_ATIPICA : COLOR_CAJA)
                     return (
                         <div
                             key={`${h.clase}-${i}`}
@@ -161,6 +170,13 @@ export function IntegradoVista({ estado, imagenDataUrl }: IntegradoVistaProps) {
                         <span style={{ width: 12, height: 12, borderRadius: 3, border: `2px solid ${COLOR_CAJA_ATIPICA}` }} />
                         Ubicación atípica
                     </span>
+                    {/* Swatches de especialistas presentes (data-driven por clase) */}
+                    {especialistasPresentes.map((e) => (
+                        <span key={e.clase} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--t2)' }}>
+                            <span style={{ width: 12, height: 12, borderRadius: 3, border: `2px solid ${colorEspecialista(e.clase)}` }} />
+                            {e.claseEs} (especialista)
+                        </span>
+                    ))}
                 </div>
             )}
 
@@ -297,7 +313,8 @@ function VeredictoCard({ esAnormal, probabilidad, nivel }: { esAnormal: boolean;
 
 function FilaHallazgo({ num, h }: { num: number; h: HallazgoLocalizado }) {
     const atipica = esAtipica(h.coherencia)
-    const colorNum = atipica ? COLOR_CAJA_ATIPICA : COLOR_CAJA
+    const colorEsp = colorEspecialista(h.clase)
+    const colorNum = colorEsp ?? (atipica ? COLOR_CAJA_ATIPICA : COLOR_CAJA)
     return (
         <div style={{
             display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
@@ -313,6 +330,16 @@ function FilaHallazgo({ num, h }: { num: number; h: HallazgoLocalizado }) {
                 {num}
             </span>
             <span style={{ fontSize: 13, color: 'var(--t0)', fontWeight: 500 }}>{h.claseEs}</span>
+            {colorEsp && (
+                <span style={{
+                    fontFamily: 'var(--mono)', fontSize: 9, lineHeight: 1,
+                    letterSpacing: '0.04em', textTransform: 'uppercase',
+                    color: colorEsp, border: `1px solid ${colorEsp}`,
+                    borderRadius: 6, padding: '2px 5px',
+                }}>
+                    especialista
+                </span>
+            )}
             <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--t1)' }}>
                 {h.confianza.toFixed(2)}
             </span>
