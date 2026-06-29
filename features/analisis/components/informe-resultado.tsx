@@ -5,7 +5,7 @@
 // probabilidad de carcinoma con riesgo contextualizado, interpretación
 // del modelo, patologías agrupadas por severidad y acciones con contexto.
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import type { InformeAnalisis } from '@/lib/tipos'
 import { MedicalDisclaimer } from '@/components/medical/medical-disclaimer'
 import { useDeteccion } from '../hooks/use-deteccion'
@@ -14,6 +14,7 @@ import { useSegmentacion } from '../hooks/use-segmentacion'
 import { SegmentacionVista } from './segmentacion-vista'
 import { useAnalisisIntegrado } from '../hooks/use-analisis-integrado'
 import { IntegradoVista } from './integrado-vista'
+import { ImagenZoom } from './imagen-zoom'
 
 interface InformeResultadoProps {
     readonly informe: InformeAnalisis
@@ -21,6 +22,8 @@ interface InformeResultadoProps {
     readonly gradcamBase64?: string
     readonly onGuardar: () => void
     readonly onNuevo: () => void
+    /** Si se provee, muestra "Cambiar imagen" para re-analizar otra radiografía sin salir del informe. */
+    readonly onCambiarImagen?: (file: File) => void
 }
 
 // Etiqueta de riesgo contextualizada según porcentaje, sin usar "severidad" cruda.
@@ -54,9 +57,11 @@ const estiloCard: React.CSSProperties = {
     border: '1px solid var(--border)',
 }
 
-export function InformeResultado({ informe, imagenDataUrl, gradcamBase64, onGuardar, onNuevo }: InformeResultadoProps) {
+export function InformeResultado({ informe, imagenDataUrl, gradcamBase64, onGuardar, onNuevo, onCambiarImagen }: InformeResultadoProps) {
+    const inputCambiarRef = useRef<HTMLInputElement>(null)
     const pct = informe.porcentajeCarcinoma
     const riesgo = etiquetaRiesgo(pct)
+    const esPositivo = pct >= 50  // por encima del umbral de detección mostrado (50%)
 
     // Separar patologías en principales (>=65%) y secundarias (30–64%)
     const principales = informe.patologiasRelevantes.filter(p => p.porcentaje >= 65)
@@ -93,7 +98,7 @@ export function InformeResultado({ informe, imagenDataUrl, gradcamBase64, onGuar
                                 {pct}%
                             </span>
                             <span style={{ fontSize: 14, color: 'var(--t1)' }}>
-                                probabilidad estimada de carcinoma
+                                índice de probabilidad · clasificador binario
                             </span>
                         </div>
 
@@ -157,9 +162,9 @@ export function InformeResultado({ informe, imagenDataUrl, gradcamBase64, onGuar
                             }} />
                             <div>
                                 <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--t0)', marginBottom: 4 }}>
-                                    Detección positiva por el modelo
+                                    {esPositivo ? 'Detección positiva por el modelo' : 'Sin detección positiva por el modelo'}
                                 </div>
-                                <div style={{ fontSize: 13, color: 'var(--t1)', lineHeight: 1.65 }}>
+                                <div style={{ fontSize: 13, color: 'var(--t1)', lineHeight: 1.65, whiteSpace: 'pre-line' }}>
                                     {informe.etiquetaCarcinoma}
                                 </div>
                             </div>
@@ -254,6 +259,39 @@ export function InformeResultado({ informe, imagenDataUrl, gradcamBase64, onGuar
                     Guardar estudio
                 </button>
 
+                {onCambiarImagen && (
+                    <>
+                        <input
+                            ref={inputCambiarRef}
+                            type="file"
+                            accept="image/*"
+                            hidden
+                            onChange={(e) => {
+                                const f = e.target.files?.[0]
+                                if (f) onCambiarImagen(f)
+                                e.target.value = ''
+                            }}
+                        />
+                        <button
+                            onClick={() => inputCambiarRef.current?.click()}
+                            style={{
+                                display: 'flex', alignItems: 'center', gap: 7,
+                                padding: '10px 22px', borderRadius: 10,
+                                background: 'var(--bg-3)', color: 'var(--t0)',
+                                border: '1px solid var(--border)', fontSize: 13,
+                                fontWeight: 500, cursor: 'pointer', transition: 'all var(--ts)',
+                            }}
+                        >
+                            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                                <rect x="2.5" y="3.5" width="11" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.3" />
+                                <circle cx="6" cy="7" r="1.3" stroke="currentColor" strokeWidth="1.1" />
+                                <path d="M3 12l3.5-3 2 1.6L11 8l2 2" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                            Cambiar imagen
+                        </button>
+                    </>
+                )}
+
                 <button
                     onClick={onNuevo}
                     style={{
@@ -292,27 +330,28 @@ export function InformeResultado({ informe, imagenDataUrl, gradcamBase64, onGuar
 function AreaImagenes({ imagenDataUrl, gradcamBase64 }: { imagenDataUrl: string; gradcamBase64?: string }) {
     type TabId = 'original' | 'gradcam' | 'deteccion' | 'segmentacion' | 'integrado'
     const [tab, setTab] = useState<TabId>('original')
+    const [zoom, setZoom] = useState(false)
 
     // Detección y segmentación se disparan automáticamente al montar el informe
     // (en paralelo, sin bloquear): al abrir la pestaña normalmente ya están listas.
     const deteccion = useDeteccion(imagenDataUrl)
     const segmentacion = useSegmentacion(imagenDataUrl)
 
-    // El análisis integrado corre los 4 modelos -> es LAZY: solo se lanza cuando
-    // el usuario abre su pestaña (latch que queda en true).
-    const [integradoSolicitado, setIntegradoSolicitado] = useState(false)
-    const integrado = useAnalisisIntegrado(imagenDataUrl, integradoSolicitado)
+    // El análisis integrado (los 4 modelos) también corre en SEGUNDO PLANO desde
+    // que aparece el informe, igual que detección y segmentación: así ya está
+    // listo cuando el usuario abre su pestaña (antes era lazy al hacer clic).
+    const integrado = useAnalisisIntegrado(imagenDataUrl, true)
 
+    // Orden: Original / Grad-CAM / Segmentación / Detección / Integrado.
     const tabs: { id: TabId; label: string }[] = [
         { id: 'original', label: 'Original' },
         ...(gradcamBase64 ? [{ id: 'gradcam' as TabId, label: 'Grad-CAM' }] : []),
-        { id: 'deteccion', label: 'Detección' },
         { id: 'segmentacion', label: 'Segmentación' },
+        { id: 'deteccion', label: 'Detección' },
         { id: 'integrado', label: 'Integrado' },
     ]
 
     function seleccionarTab(id: TabId) {
-        if (id === 'integrado') setIntegradoSolicitado(true)  // dispara el análisis integrado
         setTab(id)
     }
 
@@ -346,6 +385,24 @@ function AreaImagenes({ imagenDataUrl, gradcamBase64 }: { imagenDataUrl: string;
                         </button>
                     )
                 })}
+                <div style={{ flex: 1 }} />
+                <button
+                    onClick={() => setZoom(true)}
+                    title="Ampliar imagen"
+                    style={{
+                        display: 'inline-flex', alignItems: 'center', gap: 6,
+                        padding: '6px 10px', marginBottom: -1, border: 'none',
+                        background: 'transparent', cursor: 'pointer',
+                        fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--t2)',
+                    }}
+                >
+                    <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
+                        <circle cx="7" cy="7" r="4.5" stroke="currentColor" strokeWidth="1.3" />
+                        <path d="M10.5 10.5L14 14" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+                        <path d="M7 5.2v3.6M5.2 7h3.6" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" />
+                    </svg>
+                    Ampliar
+                </button>
             </div>
 
             {/* Panel: Original */}
@@ -357,7 +414,9 @@ function AreaImagenes({ imagenDataUrl, gradcamBase64 }: { imagenDataUrl: string;
                     <img
                         src={imagenDataUrl}
                         alt="Radiografía original"
-                        style={{ width: '100%', borderRadius: 12, border: '1px solid var(--border)', display: 'block' }}
+                        onClick={() => setZoom(true)}
+                        title="Clic para ampliar"
+                        style={{ width: '100%', borderRadius: 12, border: '1px solid var(--border)', display: 'block', cursor: 'zoom-in' }}
                     />
                 </div>
             )}
@@ -404,6 +463,9 @@ function AreaImagenes({ imagenDataUrl, gradcamBase64 }: { imagenDataUrl: string;
             {tab === 'integrado' && (
                 <IntegradoVista estado={integrado} imagenDataUrl={imagenDataUrl} />
             )}
+
+            {/* Visor con zoom (lightbox) de la radiografía */}
+            {zoom && <ImagenZoom src={imagenDataUrl} onClose={() => setZoom(false)} />}
         </div>
     )
 }

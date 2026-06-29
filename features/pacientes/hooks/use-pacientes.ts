@@ -32,6 +32,7 @@ export function usePacientes() {
     const [pacientes, setPacientes] = useState<Paciente[]>([])
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setPacientes(leerPacientes())
     }, [])
 

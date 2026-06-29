@@ -9,7 +9,6 @@ import { ZonaSubida, InformeResultado, useAnalisis } from '@/features/analisis'
 import { useInformeActivo } from '@/features/analisis/informe-activo-context'
 import { useEstudios, NOTAS_MAX_CHARS } from '@/features/estudios'
 import { usePacientes } from '@/features/pacientes'
-import { usePlan } from '@/components/plan'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { comprimirImagen, tamanoDataUrlBytes } from '@/lib/utils/imagen'
@@ -120,10 +119,9 @@ function PanelMetaYModelo({
 }
 
 export default function AnalizarPage() {
-    const { estado, previsualizarArchivo, confirmarAnalisis, reiniciar } = useAnalisis()
-    const { guardar, puedoCrear, estudiosEsteMes } = useEstudios()
+    const { estado, previsualizarArchivo, confirmarAnalisis, analizar, reiniciar } = useAnalisis()
+    const { guardar } = useEstudios()
     const { pacientes, guardar: guardarPaciente } = usePacientes()
-    const { limites } = usePlan()
     const { setInformeActivo, limpiarInformeActivo } = useInformeActivo()
     const router = useRouter()
 
@@ -227,11 +225,7 @@ export default function AnalizarPage() {
         <>
             <HeaderApp
                 titulo="Analizar radiografía"
-                subtitulo={
-                    limites.estudiosPorMes !== null
-                        ? `${estudiosEsteMes}/${limites.estudiosPorMes} este mes`
-                        : undefined
-                }
+                subtitulo="Visión artificial · apoyo clínico"
             />
 
             <div style={{
@@ -273,7 +267,7 @@ export default function AnalizarPage() {
                         {/* Zona de subida */}
                         <ZonaSubida
                             onArchivo={previsualizarArchivo}
-                            disabled={!puedoCrear}
+                            disabled={false}
                         />
 
                         {/* Fila inferior: Cómo funciona + Stats */}
@@ -310,30 +304,13 @@ export default function AnalizarPage() {
                                     color: 'var(--t2)', letterSpacing: '0.06em',
                                     textTransform: 'uppercase', marginBottom: 4,
                                 }}>
-                                    Uso del plan
+                                    Detalles
                                 </div>
-                                {limites.estudiosPorMes !== null ? (
-                                    <>
-                                        <StatBadge
-                                            icon={<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M8 2v12M4 6l4-4 4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
-                                            label="Usados este mes"
-                                            value={`${estudiosEsteMes} / ${limites.estudiosPorMes}`}
-                                        />
-                                        <div style={{
-                                            height: 4, borderRadius: 4,
-                                            background: 'var(--bg-3)', overflow: 'hidden',
-                                        }}>
-                                            <div style={{
-                                                height: '100%', borderRadius: 4,
-                                                width: `${Math.min(100, (estudiosEsteMes / limites.estudiosPorMes) * 100)}%`,
-                                                background: estudiosEsteMes >= limites.estudiosPorMes ? 'var(--err)' : 'var(--accent)',
-                                                transition: 'width 0.4s ease',
-                                            }} />
-                                        </div>
-                                    </>
-                                ) : (
-                                    <div style={{ fontSize: 14, color: 'var(--t1)' }}>Plan sin límite de estudios</div>
-                                )}
+                                <StatBadge
+                                    icon={<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><rect x="2.5" y="2.5" width="11" height="11" rx="2.5" stroke="currentColor" strokeWidth="1.4"/><path d="M5.5 8.5l1.8 1.8 3.2-3.6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                                    label="Análisis"
+                                    value="Clasif · Detec · Segm"
+                                />
                                 <StatBadge
                                     icon={<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.5"/><path d="M8 5v3l2 2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>}
                                     label="Tiempo estimado"
@@ -347,19 +324,6 @@ export default function AnalizarPage() {
                             </div>
                         </div>
 
-                        {/* Aviso de límite alcanzado */}
-                        {!puedoCrear && (
-                            <div style={{
-                                padding: '12px 16px', borderRadius: 10,
-                                border: '1px solid var(--warn)', background: 'var(--warn-bg)',
-                                color: 'var(--warn)', fontSize: 13, textAlign: 'center',
-                            }}>
-                                Has alcanzado el límite de {limites.estudiosPorMes} estudios/mes.
-                                <a href="/upgrade" style={{ color: 'var(--accent)', marginLeft: 6 }}>
-                                    Actualizar plan →
-                                </a>
-                            </div>
-                        )}
                     </div>
                 )}
 
@@ -611,6 +575,7 @@ export default function AnalizarPage() {
                         gradcamBase64={estado.informe.gradcamBase64}
                         onGuardar={() => setMostrarGuardar(true)}
                         onNuevo={handleReiniciar}
+                        onCambiarImagen={analizar}
                     />
                 )}
 

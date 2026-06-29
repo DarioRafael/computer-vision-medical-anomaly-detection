@@ -5,13 +5,10 @@
 
 import { HeaderApp } from '@/components/layout/header-app'
 import { useEstudios } from '@/features/estudios'
-import { usePlan } from '@/components/plan'
-import { UpgradePrompt } from '@/components/plan'
 import Link from 'next/link'
 
 export default function DashboardPage() {
     const { estudios, estudiosEsteMes, puedoCrear } = useEstudios()
-    const { plan, limites } = usePlan()
 
     return (
         <>
@@ -25,16 +22,12 @@ export default function DashboardPage() {
                 gap: 20,
                 background: 'var(--bg-1)',
             }}>
-                {plan === 'free' && (
-                    <UpgradePrompt mensaje="Accede a pacientes, reportes PDF y comparación con Premium." />
-                )}
-
                 {/* Tarjetas de resumen */}
                 <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                     <StatCard
                         titulo="Estudios este mes"
                         valor={`${estudiosEsteMes}`}
-                        subtitulo={limites.estudiosPorMes !== null ? `de ${limites.estudiosPorMes}` : 'ilimitados'}
+                        subtitulo="este mes"
                     />
                     <StatCard
                         titulo="Estudios totales"
@@ -42,9 +35,9 @@ export default function DashboardPage() {
                         subtitulo="en historial"
                     />
                     <StatCard
-                        titulo="Plan"
-                        valor={plan === 'free' ? 'Free' : 'Premium'}
-                        subtitulo={plan === 'free' ? 'Básico' : 'Todo incluido'}
+                        titulo="Modelos de IA"
+                        valor="9"
+                        subtitulo="clasif · detec · segm"
                     />
                 </div>
 

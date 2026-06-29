@@ -67,6 +67,10 @@ export function IntegradoVista({ estado, imagenDataUrl }: IntegradoVistaProps) {
                 Análisis integrado — evidencia convergente de 4 modelos
             </div>
 
+            {/* Tablero: imagen (izquierda) + reporte (derecha); apila en pantallas estrechas */}
+            <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+            <div style={{ flex: '1.5 1 340px', minWidth: 300 }}>
+
             {/* ── Imagen combinada: radiografía + máscara tenue + cajas ── */}
             <div style={{
                 position: 'relative', width: '100%',
@@ -180,6 +184,10 @@ export function IntegradoVista({ estado, imagenDataUrl }: IntegradoVistaProps) {
                 </div>
             )}
 
+            </div>{/* fin columna visual */}
+
+            <div style={{ flex: '1 1 280px', minWidth: 260 }}>{/* columna reporte */}
+
             {/* ── Error ── */}
             {estado.estado === 'error' && (
                 <div role="alert" style={{
@@ -200,7 +208,7 @@ export function IntegradoVista({ estado, imagenDataUrl }: IntegradoVistaProps) {
 
             {/* ── Reporte tejido ── */}
             {datos && (
-                <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
 
                     {/* Veredicto */}
                     <VeredictoCard
@@ -254,19 +262,21 @@ export function IntegradoVista({ estado, imagenDataUrl }: IntegradoVistaProps) {
                         </span>
                     </div>
 
-                    {/* Resumen narrativo */}
-                    <div style={{
-                        padding: '14px 16px', borderRadius: 12,
+                    {/* Resumen narrativo (colapsable para no ocupar tanto espacio) */}
+                    <details style={{
+                        padding: '12px 16px', borderRadius: 12,
                         background: 'var(--bg-2)', border: '1px solid var(--border)',
                     }}>
-                        <div style={labelStyle}>Informe asistido</div>
+                        <summary style={{ ...labelStyle, marginBottom: 0, cursor: 'pointer', listStyle: 'revert' }}>
+                            Informe radiológico asistido
+                        </summary>
                         <p style={{
-                            fontSize: 13, color: 'var(--t1)', lineHeight: 1.65, margin: 0,
+                            fontSize: 13, color: 'var(--t1)', lineHeight: 1.65, margin: '10px 0 0',
                             whiteSpace: 'pre-line',  // respeta los saltos de línea entre secciones
                         }}>
                             {datos.resumenTexto}
                         </p>
-                    </div>
+                    </details>
 
                     {/* Avisos de fallos parciales */}
                     {datos.avisos.length > 0 && (
@@ -283,6 +293,9 @@ export function IntegradoVista({ estado, imagenDataUrl }: IntegradoVistaProps) {
                     )}
                 </div>
             )}
+
+            </div>{/* fin columna reporte */}
+            </div>{/* fin tablero */}
         </div>
     )
 }

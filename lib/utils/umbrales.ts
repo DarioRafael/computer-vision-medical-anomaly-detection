@@ -26,6 +26,17 @@ export const ETIQUETAS_CARCINOMA: readonly string[] = [
 ] as const
 
 /**
+ * Etiquetas que NO representan un hallazgo y por tanto no deben listarse como
+ * "condición detectada" (un "Sin hallazgos" alto significa imagen normal, no un
+ * hallazgo). Se contemplan variantes ES/EN por si cambia el pipeline.
+ */
+export const ETIQUETAS_NO_HALLAZGO: readonly string[] = [
+    'Sin hallazgos',
+    'No_Finding',
+    'No Finding',
+] as const
+
+/**
  * Rangos para calcular la severidad cualitativa.
  * La severidad es solo un color/etiqueta de UI; el valor clínico real es la
  * probabilidad numérica del modelo.

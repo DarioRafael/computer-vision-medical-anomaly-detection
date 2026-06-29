@@ -251,6 +251,51 @@ const DATASETS: DatasetInfo[] = [
         descripcion: 'Tipos específicos de carcinoma: adenocarcinoma, células grandes y células escamosas. Modelo base con 86.8% de precisión.',
         url: 'https://universe.roboflow.com/lung-cancer-3gsnq/lung-cancer-dataset',
     },
+    {
+        nombre: 'VinBigData Chest X-ray (VinDr-CXR)',
+        proveedor: 'Vingroup Big Data Institute',
+        tamano: '18,000 radiografías · 14 patologías con cajas (radiólogos)',
+        licencia: 'Uso del reto (Kaggle)',
+        licenciaColor: 'warn',
+        descripcion: 'Radiografías anotadas con cajas para 14 hallazgos torácicos por múltiples radiólogos. Base del detector general (YOLO de 14 clases).',
+        url: 'https://www.kaggle.com/competitions/vinbigdata-chest-xray-abnormalities-detection',
+    },
+    {
+        nombre: 'Montgomery + Shenzhen (NLM)',
+        proveedor: 'U.S. National Library of Medicine',
+        tamano: '~800 radiografías · máscaras de campos pulmonares por radiólogo',
+        licencia: 'Uso público (NLM)',
+        licenciaColor: 'ok',
+        descripcion: 'Radiografías de tórax con máscaras de pulmón anotadas por radiólogo (sets Montgomery County y Shenzhen Hospital). Base del modelo de segmentación de campos pulmonares (U-Net).',
+        url: 'https://www.kaggle.com/datasets/yoctoman/shcxr-lung-mask',
+    },
+    {
+        nombre: 'TBX11K',
+        proveedor: 'Tuberculosis Chest X-ray (TBX11K)',
+        tamano: '11,200 radiografías · cajas de tuberculosis',
+        licencia: 'Uso académico',
+        licenciaColor: 'accent',
+        descripcion: 'Radiografías con regiones de tuberculosis anotadas con cajas. Base del detector especialista en tuberculosis (YOLO).',
+        url: 'https://www.kaggle.com/datasets/usmanshams/tbx-11',
+    },
+    {
+        nombre: 'RSNA Pneumonia Detection',
+        proveedor: 'Radiological Society of North America',
+        tamano: '~26,600 radiografías · cajas de opacidad/neumonía',
+        licencia: 'Uso del reto (RSNA/Kaggle)',
+        licenciaColor: 'warn',
+        descripcion: 'Reto de detección de neumonía con cajas de opacidad pulmonar. Base del detector especialista en neumonía (YOLO).',
+        url: 'https://www.kaggle.com/competitions/rsna-pneumonia-detection-challenge',
+    },
+    {
+        nombre: 'SIIM-ACR Pneumothorax',
+        proveedor: 'SIIM / American College of Radiology',
+        tamano: '~12,000 radiografías · máscaras de neumotórax a nivel de píxel',
+        licencia: 'Uso del reto (SIIM/Kaggle)',
+        licenciaColor: 'warn',
+        descripcion: 'Radiografías con máscaras de neumotórax. Base del segmentador especialista en neumotórax (Unet++).',
+        url: 'https://www.kaggle.com/competitions/siim-acr-pneumothorax-segmentation',
+    },
 ]
 
 // ── Datos: Equipo ─────────────────────────────────────────────────────
@@ -346,13 +391,13 @@ function VistaSobre() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div style={styleCard}>
                 <div style={styleSeccionTitulo}>¿Qué es Pulmia?</div>
-                <Heading>Sistema de IA para detección de carcinoma pulmonar</Heading>
+                <Heading>Sistema de IA para la detección de anomalías médicas en tórax</Heading>
                 <Parrafo>
                     Pulmia es una <strong style={{ color: 'var(--t0)' }}>herramienta de apoyo clínico</strong> basada
-                    en inteligencia artificial que analiza radiografías y tomografías de tórax para identificar
-                    indicadores asociados al carcinoma pulmonar. El sistema entrega un porcentaje de probabilidad,
-                    señala regiones de interés mediante Grad-CAM o segmentación U-Net, y detecta hasta 19 patologías
-                    torácicas adicionales para enriquecer el contexto clínico.
+                    en inteligencia artificial que analiza radiografías de tórax para identificar anomalías y
+                    patologías torácicas. Combina clasificación (probabilidades por patología), detección de hallazgos
+                    con cajas, segmentación de regiones a nivel de píxel y modelos especialistas (neumonía,
+                    tuberculosis y neumotórax), señalando además regiones de interés mediante Grad-CAM y máscaras.
                 </Parrafo>
                 <Parrafo>
                     El sistema está diseñado como una segunda opinión objetiva, especialmente útil en entornos con
@@ -390,46 +435,6 @@ function VistaSobre() {
                 </ul>
             </div>
 
-            <div style={styleCard}>
-                <div style={styleSeccionTitulo}>Métricas del modelo</div>
-                <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
-                    gap: 10,
-                    marginTop: 6,
-                }}>
-                    {[
-                        { v: '0.965', l: 'AUC-ROC binario X-ray' },
-                        { v: '0.873', l: 'AUC-ROC binario CT' },
-                        { v: '0.853', l: 'AUC promedio 19 clases' },
-                        { v: '89.3%', l: 'Recall en cáncer' },
-                        { v: '93.8%', l: 'Accuracy' },
-                        { v: '0.56', l: 'Dice U-Net (CT)' },
-                    ].map((m) => (
-                        <div key={m.l} style={{
-                            padding: '12px 14px',
-                            borderRadius: 10,
-                            background: 'var(--bg-3)',
-                            border: '1px solid var(--border)',
-                        }}>
-                            <div style={{
-                                fontSize: 18,
-                                fontWeight: 700,
-                                color: 'var(--accent)',
-                                fontFamily: 'var(--mono)',
-                                marginBottom: 2,
-                            }}>{m.v}</div>
-                            <div style={{
-                                fontSize: 10,
-                                color: 'var(--t2)',
-                                fontFamily: 'var(--mono)',
-                                textTransform: 'uppercase',
-                                letterSpacing: '0.04em',
-                            }}>{m.l}</div>
-                        </div>
-                    ))}
-                </div>
-            </div>
         </div>
     )
 }
@@ -634,7 +639,7 @@ function VistaLegal() {
                 </Parrafo>
                 <Parrafo>
                     Bajo esta clasificación, sería considerado de riesgo moderado a alto dado que sus salidas pueden
-                    influir en decisiones clínicas relacionadas con una enfermedad oncológica.
+                    influir en decisiones clínicas relacionadas con una condición médica.
                 </Parrafo>
             </div>
 

@@ -7,7 +7,7 @@ import type {
     ResultadoAnalisis,
     Severidad,
 } from '@/lib/tipos'
-import { ETIQUETAS_CARCINOMA, RANGOS_SEVERIDAD, UMBRAL_PATOLOGIA } from './umbrales'
+import { ETIQUETAS_CARCINOMA, ETIQUETAS_NO_HALLAZGO, RANGOS_SEVERIDAD, UMBRAL_PATOLOGIA } from './umbrales'
 
 /**
  * Convierte una probabilidad 0..1 en un porcentaje entero.
@@ -36,7 +36,11 @@ export function patologiasRelevantes(
     patologias: Readonly<Record<string, number>>,
 ): readonly PatologiaRelevante[] {
     return Object.entries(patologias)
-        .filter(([nombre, prob]) => !ETIQUETAS_CARCINOMA.includes(nombre) && prob > UMBRAL_PATOLOGIA)
+        .filter(([nombre, prob]) =>
+            !ETIQUETAS_CARCINOMA.includes(nombre)
+            && !ETIQUETAS_NO_HALLAZGO.includes(nombre)
+            && prob > UMBRAL_PATOLOGIA,
+        )
         .sort(([, a], [, b]) => b - a)
         .map(([nombre, probabilidad]) => ({
             nombre,

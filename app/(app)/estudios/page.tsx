@@ -7,8 +7,6 @@ import { HeaderApp } from '@/components/layout/header-app'
 import { MedicalDisclaimer } from '@/components/medical/medical-disclaimer'
 import { useEstudios } from '@/features/estudios'
 import { usePacientes } from '@/features/pacientes'
-import { usePlan } from '@/components/plan'
-import { UpgradePrompt } from '@/components/plan'
 import { useRouter } from 'next/navigation'
 import { formatearFecha } from '@/lib/utils/fechas'
 import type { Estudio } from '@/lib/tipos'
@@ -28,10 +26,7 @@ const SEVERIDAD_BG: Record<string, string> = {
 export default function EstudiosPage() {
     const { estudios, totalEstudios } = useEstudios()
     const { pacientes } = usePacientes()
-    const { can, limites } = usePlan()
     const router = useRouter()
-
-    const tieneHistorialLimitado = !can('historial_ilimitado') && totalEstudios > estudios.length
 
     // Estadísticas
     const totalAlta  = estudios.filter((e: Estudio) => e.informe.severidad === 'alta').length
@@ -125,15 +120,6 @@ export default function EstudiosPage() {
                 subtitulo={`${totalEstudios} estudio${totalEstudios === 1 ? '' : 's'} en total`}
             />
             <div style={{ flex: 1, overflowY: 'auto', padding: '24px' }}>
-
-                {tieneHistorialLimitado && (
-                    <div style={{ marginBottom: 16 }}>
-                        <UpgradePrompt
-                            feature="historial_ilimitado"
-                            mensaje={`Mostrando los últimos ${limites.estudiosEnHistorial} estudios. Actualiza para ver todo el historial.`}
-                        />
-                    </div>
-                )}
 
                 {/* ── Estadísticas ── */}
                 <div style={{ display: 'flex', gap: 12, marginBottom: 24, flexWrap: 'wrap' }}>

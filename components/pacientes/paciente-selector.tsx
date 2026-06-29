@@ -56,6 +56,7 @@ export function PacienteSelector({
             valor.tipo === 'existente' ? valor.nombre :
             valor.tipo === 'nuevo' ? valor.nombre :
             ''
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setTexto(externo)
     }, [valor])
 

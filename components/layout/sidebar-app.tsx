@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import type React from 'react'
 import { usePlan } from '@/components/plan'
-import { PlanBadge } from './plan-badge'
 import { MedicalToolBadge } from '@/components/medical/medical-tool-badge'
 import { MedicalDisclaimer } from '@/components/medical/medical-disclaimer'
 
@@ -159,7 +158,7 @@ export function SidebarApp({ collapsed, onToggle }: SidebarAppProps) {
                             Pulmia
                         </div>
                         <div style={{ fontFamily: 'var(--mono)', fontSize: 9, color: 'var(--t2)', letterSpacing: '0.04em', marginTop: 2 }}>
-                            Carcinoma Pulmonar
+                            Anomalías Médicas
                         </div>
                     </div>
                 )}
@@ -328,12 +327,6 @@ export function SidebarApp({ collapsed, onToggle }: SidebarAppProps) {
                 background: 'var(--border)',
                 margin: collapsed ? '4px 8px' : '4px 16px',
             }} />
-
-            {!collapsed && (
-                <div style={{ padding: '12px 12px 0' }}>
-                    <PlanBadge />
-                </div>
-            )}
 
             {/* ── Footer disclaimer ─────────────────────────────────── */}
             {!collapsed && (

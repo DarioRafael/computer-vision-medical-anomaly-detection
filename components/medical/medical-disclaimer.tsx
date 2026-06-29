@@ -81,6 +81,7 @@ export function MedicalDisclaimer({ variante, storageKey = STORAGE_KEY_DEFAULT }
         if (variante !== 'banner') return
         try {
             const guardado = window.localStorage.getItem(storageKey)
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             if (guardado === '1') setCerrado(true)
         } catch {
             // localStorage puede no estar disponible — el banner se mantiene visible.
@@ -109,41 +110,41 @@ export function MedicalDisclaimer({ variante, storageKey = STORAGE_KEY_DEFAULT }
                     position: 'relative',
                     display: 'flex',
                     alignItems: 'flex-start',
-                    gap: 12,
-                    padding: '14px 18px',
-                    paddingRight: 40,
-                    borderRadius: 12,
+                    gap: 10,
+                    padding: '9px 14px',
+                    paddingRight: 36,
+                    borderRadius: 10,
                     background: 'var(--accent-glow)',
                     border: '1px solid var(--border)',
                     borderLeft: '3px solid var(--accent)',
                 }}
             >
-                <span style={{ flexShrink: 0, marginTop: 2 }}>
-                    <IconoShield size={18} color="var(--accent)" />
+                <span style={{ flexShrink: 0, marginTop: 1 }}>
+                    <IconoShield size={15} color="var(--accent)" />
                 </span>
                 <div style={{ minWidth: 0 }}>
                     <div
                         style={{
                             fontFamily: 'var(--mono)',
-                            fontSize: 10,
+                            fontSize: 9,
                             color: 'var(--accent)',
                             letterSpacing: '0.08em',
                             textTransform: 'uppercase',
-                            marginBottom: 4,
+                            marginBottom: 2,
                             fontWeight: 600,
                         }}
                     >
                         Aviso médico-legal
                     </div>
                     <p style={{
-                        fontSize: 13,
+                        fontSize: 12,
                         color: 'var(--t1)',
-                        lineHeight: 1.6,
+                        lineHeight: 1.5,
                         margin: 0,
                     }}>
                         {TEXTO_BANNER}
                     </p>
-                    <div style={{ marginTop: 6, fontSize: 12 }}>
+                    <div style={{ marginTop: 4, fontSize: 11 }}>
                         <Link
                             href="/legal"
                             style={{

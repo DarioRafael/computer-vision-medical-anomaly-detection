@@ -6,8 +6,8 @@ import { PlanProvider } from '@/components/plan'
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 
 export const metadata: Metadata = {
-  title: 'Sistema IA — Deteccion de Carcinoma Pulmonar',
-  description: 'Asistente clinico para analisis de imagenes pulmonares',
+  title: 'Pulmia — Detección de Anomalías Médicas con IA',
+  description: 'Herramienta de apoyo clínico para análisis de radiografías de tórax mediante visión artificial',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -22,7 +22,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             rel="stylesheet"
         />
       </head>
-      <body className={inter.variable}>
+      {/* suppressHydrationWarning: algunas extensiones del navegador (p. ej. Bitdefender,
+          que inyecta bis_register / __processed_*) modifican el <body> antes de que React
+          hidrate. Esto evita el falso error de hidratación que provocan. */}
+      <body className={inter.variable} suppressHydrationWarning>
         <PlanProvider plan="free">{children}</PlanProvider>
       </body>
       </html>

@@ -1,7 +1,6 @@
 'use client'
 
 import { HeaderApp } from '@/components/layout/header-app'
-import { usePlan } from '@/components/plan'
 import { MedicalDisclaimer } from '@/components/medical/medical-disclaimer'
 import Link from 'next/link'
 
@@ -75,57 +74,20 @@ function FilaItem({ item }: { item: ItemPlan }) {
 }
 
 export default function ConfiguracionPage() {
-    const { plan, definicion, limites } = usePlan()
-    const esFree = plan === 'free'
-
-    // Solo mostramos como "upsell" lo que el plan actual NO incluye.
-    const tieneEstudiosIlimitados = limites.estudiosPorMes === null
-    const tieneHistorialIlimitado = limites.estudiosEnHistorial === null
-
     const items: ItemPlan[] = [
-        {
-            id: 'estudios-mes',
-            etiqueta: tieneEstudiosIlimitados
-                ? 'Estudios ilimitados al mes'
-                : `${limites.estudiosPorMes} estudios al mes`,
-            incluido: true,
-            detalle: tieneEstudiosIlimitados ? undefined : 'Se reinicia el primer día de cada mes',
-        },
-        {
-            id: 'historial-plan',
-            etiqueta: tieneHistorialIlimitado
-                ? 'Historial completo sin límite'
-                : `Historial de ${limites.estudiosEnHistorial} estudios`,
-            incluido: true,
-        },
-        {
-            id: 'exportar',
-            etiqueta: 'Exportación a PDF y Word',
-            incluido: true,
-        },
-        {
-            id: 'chat',
-            etiqueta: 'Asistente clínico (chat con IA)',
-            incluido: true,
-        },
-        // Solo añadimos líneas "no incluidas" para features que realmente faltan en el plan
-        ...(!tieneEstudiosIlimitados ? [{
-            id: 'estudios-ilimitados-upsell',
-            etiqueta: 'Estudios ilimitados',
-            incluido: false,
-            detalle: 'Disponible en plan superior',
-        } as ItemPlan] : []),
-        ...(!tieneHistorialIlimitado ? [{
-            id: 'historial-ilimitado-upsell',
-            etiqueta: 'Historial ilimitado',
-            incluido: false,
-            detalle: 'Disponible en plan superior',
-        } as ItemPlan] : []),
+        { id: 'clasif', etiqueta: 'Clasificación binaria y multilabel', incluido: true },
+        { id: 'detec', etiqueta: 'Detección de 14 patologías torácicas (cajas)', incluido: true },
+        { id: 'esp', etiqueta: 'Especialistas: tuberculosis, neumonía y neumotórax', incluido: true },
+        { id: 'segm', etiqueta: 'Segmentación de campos pulmonares', incluido: true },
+        { id: 'integrado', etiqueta: 'Análisis integrado (4 modelos combinados)', incluido: true },
+        { id: 'exportar', etiqueta: 'Exportación a PDF y Word', incluido: true },
+        { id: 'chat', etiqueta: 'Asistente clínico (chat con IA)', incluido: true },
+        { id: 'historial', etiqueta: 'Historial de estudios sin límite', incluido: true },
     ]
 
     return (
         <>
-            <HeaderApp titulo="Configuración" subtitulo="Plan, límites e información del sistema" />
+            <HeaderApp titulo="Configuración" subtitulo="Capacidades e información del sistema" />
             <div style={{
                 flex: 1,
                 overflowY: 'auto',
@@ -137,9 +99,9 @@ export default function ConfiguracionPage() {
                 flexDirection: 'column',
                 gap: 16,
             }}>
-                {/* ── Plan actual ───────────────────────────────────── */}
+                {/* ── Capacidades del sistema ───────────────────────── */}
                 <div style={styleCard}>
-                    <div style={styleSeccionLabel}>Tu plan</div>
+                    <div style={styleSeccionLabel}>Capacidades del sistema</div>
 
                     <div style={{
                         display: 'flex', alignItems: 'center', gap: 14,
@@ -147,20 +109,20 @@ export default function ConfiguracionPage() {
                     }}>
                         <div style={{
                             width: 44, height: 44, borderRadius: 10,
-                            background: esFree ? 'var(--bg-3)' : 'var(--accent-glow)',
-                            border: `1px solid ${esFree ? 'var(--border-h)' : 'var(--accent)'}`,
+                            background: 'var(--accent-glow)',
+                            border: '1px solid var(--accent)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: 18, color: esFree ? 'var(--t1)' : 'var(--accent)',
+                            fontSize: 18, color: 'var(--accent)',
                             flexShrink: 0,
                         }}>
-                            {esFree ? '○' : '★'}
+                            ★
                         </div>
                         <div>
                             <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--t0)', letterSpacing: '-0.01em' }}>
-                                {definicion.nombre}
+                                Pulmia
                             </div>
                             <div style={{ fontSize: 12, color: 'var(--t1)', marginTop: 2 }}>
-                                {definicion.descripcion}
+                                Detección de anomalías médicas con visión artificial
                             </div>
                         </div>
                     </div>
@@ -168,23 +130,6 @@ export default function ConfiguracionPage() {
                     <div style={{ marginTop: 12 }}>
                         {items.map((it) => <FilaItem key={it.id} item={it} />)}
                     </div>
-
-                    {esFree && (
-                        <Link href="/upgrade" style={{
-                            display: 'inline-flex', alignItems: 'center', gap: 6,
-                            marginTop: 16,
-                            padding: '9px 18px', borderRadius: 10,
-                            background: 'var(--accent)', color: '#fff',
-                            fontSize: 13, fontWeight: 600,
-                            textDecoration: 'none',
-                            boxShadow: 'var(--shadow-accent)',
-                        }}>
-                            Comparar planes
-                            <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-                                <path d="M3 8h10M8 3l5 5-5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                        </Link>
-                    )}
                 </div>
 
                 {/* ── Acerca / Marco legal ─────────────────────────── */}
