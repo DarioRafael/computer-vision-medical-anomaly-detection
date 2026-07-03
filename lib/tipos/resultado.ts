@@ -21,6 +21,8 @@ export interface ResultadoAnalisis {
     readonly patologias: PatologiasDetectadas
     /** Imagen Grad-CAM en base64 (sin prefijo data:), si el modelo la devolvió. */
     readonly gradcamBase64?: string
+    /** Grad-CAM por clase del multilabel: { etiqueta_es: base64 }. */
+    readonly gradcamsPorClase?: Readonly<Record<string, string>>
 }
 
 /**
@@ -133,6 +135,14 @@ export interface HallazgoLocalizado {
  * `mascaraPng` es el overlay base64 (igual que segmentación) para dibujar la
  * máscara tenue bajo las cajas.
  */
+/** Coherencia entre la atención del clasificador (Grad-CAM) y las cajas del detector. */
+export interface CoherenciaGradcam {
+    readonly scoreGlobal: number       // 0..1 de concordancia global
+    readonly pctCalorEnCajas: number   // % del calor que cae dentro de cajas
+    readonly nCajas: number
+    readonly nConcuerdan: number
+}
+
 export interface ResultadoIntegrado {
     readonly veredicto: VeredictoIntegrado
     readonly patologiasProbables: readonly PatologiaProbable[]
@@ -140,6 +150,8 @@ export interface ResultadoIntegrado {
     readonly areaPulmonPct: number
     readonly resumenTexto: string
     readonly mascaraPng: string
+    /** Coherencia clasificador↔detector (si se pudo calcular). */
+    readonly coherencia?: CoherenciaGradcam
     /** Avisos de fallos parciales (qué modelo no se pudo calcular). */
     readonly avisos: readonly string[]
     readonly tiempoMs: number

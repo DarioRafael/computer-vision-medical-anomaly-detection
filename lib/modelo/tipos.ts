@@ -11,6 +11,8 @@ export interface FastAPIPredictResponse {
     readonly cancer_result: string
     readonly pathologies: Readonly<Record<string, number>>
     readonly gradcam_image?: string
+    /** Grad-CAM por clase (multilabel): { etiqueta_es: base64 }. */
+    readonly gradcams_por_clase?: Readonly<Record<string, string>>
 }
 
 /**
@@ -76,6 +78,15 @@ export interface FastAPIHallazgoLocalizado {
     readonly coherencia: string  // "ubicación esperada" | "ubicación atípica" | "no evaluable"
 }
 
+/** Coherencia atención del clasificador (Grad-CAM) ↔ cajas del detector. */
+export interface FastAPICoherencia {
+    readonly disponible: boolean
+    readonly score_global: number
+    readonly pct_calor_en_cajas: number
+    readonly n_cajas: number
+    readonly n_concuerdan: number
+}
+
 /**
  * Respuesta cruda de FastAPI /analisis-integrado/analizar: reporte unificado
  * que teje clasificación + multilabel + detección + segmentación.
@@ -89,4 +100,5 @@ export interface FastAPIIntegradoResponse {
     readonly mascara_png: string
     readonly avisos: readonly string[]
     readonly tiempo_procesamiento_ms: number
+    readonly coherencia?: FastAPICoherencia | null
 }

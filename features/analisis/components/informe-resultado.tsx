@@ -144,7 +144,7 @@ export function InformeResultado({ informe, imagenDataUrl, gradcamBase64, onGuar
                     </div>
 
                     {/* ── 2. Imágenes (pestañas: Original / Grad-CAM / Detección) ── */}
-                    <AreaImagenes imagenDataUrl={imagenDataUrl} gradcamBase64={gradcamBase64} />
+                    <AreaImagenes imagenDataUrl={imagenDataUrl} gradcamBase64={gradcamBase64} gradcamsPorClase={informe.gradcamsPorClase} />
 
                 </div>{/* fin columna izquierda */}
 
@@ -327,10 +327,11 @@ export function InformeResultado({ informe, imagenDataUrl, gradcamBase64, onGuar
 // El Grad-CAM se conserva IDÉNTICO (mismo markup y leyenda), solo movido a su
 // pestaña. La detección es una vista APARTE: con pestañas nunca coinciden en
 // pantalla el heatmap del clasificador y las cajas del detector.
-function AreaImagenes({ imagenDataUrl, gradcamBase64 }: { imagenDataUrl: string; gradcamBase64?: string }) {
+function AreaImagenes({ imagenDataUrl, gradcamBase64, gradcamsPorClase }: { imagenDataUrl: string; gradcamBase64?: string; gradcamsPorClase?: Readonly<Record<string, string>> }) {
     type TabId = 'original' | 'gradcam' | 'deteccion' | 'segmentacion' | 'integrado'
     const [tab, setTab] = useState<TabId>('original')
     const [zoom, setZoom] = useState(false)
+    const [gradcamSel, setGradcamSel] = useState<string | null>(null)  // null = general (binario)
 
     // Detección y segmentación se disparan automáticamente al montar el informe
     // (en paralelo, sin bloquear): al abrir la pestaña normalmente ya están listas.
@@ -421,15 +422,44 @@ function AreaImagenes({ imagenDataUrl, gradcamBase64 }: { imagenDataUrl: string;
                 </div>
             )}
 
-            {/* Panel: Grad-CAM (markup idéntico al anterior, solo movido a su pestaña) */}
-            {tab === 'gradcam' && gradcamBase64 && (
+            {/* Panel: Grad-CAM — general (binario) + por clase del multilabel */}
+            {tab === 'gradcam' && gradcamBase64 && (() => {
+                const clases = gradcamsPorClase ? Object.keys(gradcamsPorClase) : []
+                const src = (gradcamSel && gradcamsPorClase?.[gradcamSel]) ? gradcamsPorClase[gradcamSel] : gradcamBase64
+                const etiqueta = gradcamSel ?? 'General'
+                return (
                 <div>
                     <div style={{ fontFamily: 'var(--mono)', fontSize: 9, color: 'var(--t2)', marginBottom: 6, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
                         Grad-CAM — zona de atención del modelo
                     </div>
+
+                    {/* Selector: General (binario) + una por patología detectada */}
+                    {clases.length > 0 && (
+                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
+                            {[null, ...clases].map((c) => {
+                                const sel = c === gradcamSel
+                                return (
+                                    <button
+                                        key={c ?? 'general'}
+                                        onClick={() => setGradcamSel(c)}
+                                        style={{
+                                            padding: '3px 10px', borderRadius: 999,
+                                            border: `1px solid ${sel ? 'var(--accent)' : 'var(--border)'}`,
+                                            background: sel ? 'var(--accent)' : 'var(--bg-3)',
+                                            color: sel ? '#fff' : 'var(--t1)',
+                                            fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap',
+                                        }}
+                                    >
+                                        {c ?? 'General'}
+                                    </button>
+                                )
+                            })}
+                        </div>
+                    )}
+
                     <img
-                        src={`data:image/png;base64,${gradcamBase64}`}
-                        alt="Mapa de calor Grad-CAM con zonas de alta relevancia en rojo"
+                        src={`data:image/png;base64,${src}`}
+                        alt={`Mapa de calor Grad-CAM — ${etiqueta}`}
                         style={{ width: '100%', borderRadius: 12, border: '1px solid var(--border)', display: 'block' }}
                     />
                     {/* Leyenda del heatmap */}
@@ -444,10 +474,13 @@ function AreaImagenes({ imagenDataUrl, gradcamBase64 }: { imagenDataUrl: string;
                         <span style={{ fontSize: 11, color: 'var(--t2)' }}>Alta relevancia</span>
                     </div>
                     <div style={{ fontSize: 11, color: 'var(--t2)', marginTop: 4, lineHeight: 1.5 }}>
-                        Las zonas rojas indican mayor relevancia para el modelo al clasificar la imagen.
+                        {clases.length > 0
+                            ? `Mostrando: ${etiqueta}. Rojo = dónde se fijó el modelo${gradcamSel ? ' para esa patología' : ' (anomalía general)'}.`
+                            : 'Las zonas rojas indican mayor relevancia para el modelo al clasificar la imagen.'}
                     </div>
                 </div>
-            )}
+                )
+            })()}
 
             {/* Panel: Detección */}
             {tab === 'deteccion' && (

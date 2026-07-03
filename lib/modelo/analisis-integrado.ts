@@ -66,6 +66,14 @@ export async function analizarIntegrado(
         areaPulmonPct: data.contexto_anatomico?.area_pulmon_pct ?? 0,
         resumenTexto: data.resumen_texto ?? '',
         mascaraPng: data.mascara_png ?? '',
+        ...(data.coherencia && data.coherencia.disponible ? {
+            coherencia: {
+                scoreGlobal: data.coherencia.score_global,
+                pctCalorEnCajas: data.coherencia.pct_calor_en_cajas,
+                nCajas: data.coherencia.n_cajas,
+                nConcuerdan: data.coherencia.n_concuerdan,
+            },
+        } : {}),
         avisos: data.avisos ?? [],
         tiempoMs: typeof data.tiempo_procesamiento_ms === 'number' ? data.tiempo_procesamiento_ms : 0,
     }

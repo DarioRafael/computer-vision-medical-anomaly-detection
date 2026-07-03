@@ -262,6 +262,31 @@ export function IntegradoVista({ estado, imagenDataUrl }: IntegradoVistaProps) {
                         </span>
                     </div>
 
+                    {/* Coherencia atención del clasificador ↔ detección (evidencia convergente) */}
+                    {datos.coherencia && (
+                        <div style={{
+                            padding: '10px 12px', borderRadius: 10,
+                            background: 'var(--bg-2)', border: '1px solid var(--border)',
+                            display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
+                        }}>
+                            <span style={{
+                                fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--t2)',
+                                letterSpacing: '0.06em', textTransform: 'uppercase',
+                            }}>
+                                Coherencia atención↔detección
+                            </span>
+                            <span style={{
+                                fontFamily: 'var(--mono)', fontSize: 14, fontWeight: 700,
+                                color: datos.coherencia.scoreGlobal >= 0.5 ? 'var(--accent)' : '#EF9F27',
+                            }}>
+                                {Math.round(datos.coherencia.scoreGlobal * 100)}%
+                            </span>
+                            <span style={{ fontSize: 12, color: 'var(--t2)' }}>
+                                el foco del clasificador coincide con {datos.coherencia.nConcuerdan}/{datos.coherencia.nCajas} hallazgo(s)
+                            </span>
+                        </div>
+                    )}
+
                     {/* Resumen narrativo (colapsable para no ocupar tanto espacio) */}
                     <details style={{
                         padding: '12px 16px', borderRadius: 12,

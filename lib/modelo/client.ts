@@ -69,5 +69,6 @@ export async function predecirRadiografia(
         etiquetaCarcinoma: data.cancer_result,
         patologias: data.pathologies ?? {},
         ...(data.gradcam_image !== undefined && { gradcamBase64: data.gradcam_image }),
+        ...(data.gradcams_por_clase !== undefined && { gradcamsPorClase: data.gradcams_por_clase }),
     }
 }
